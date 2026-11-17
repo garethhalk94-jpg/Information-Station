@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}New Article | Information Station{% endblock %}
+
+{% block content %}
+<h1>New Article</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form }}
+    <button type="submit">Submit for approval</button>
+</form>
+{% endblock %}

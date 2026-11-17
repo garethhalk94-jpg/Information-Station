@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}My Articles | Information Station{% endblock %}
+
+{% block content %}
+  <h1>My Articles</h1>
+
+  <ul class="item-list">
+    {% for article in articles %}
+      <li class="item-row">
+        <a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a>
+        <span>
+            {% if article.approved %}Approved{% else %}Pending Approval{% endif %}
+            <br>
+            {{ article.publisher.name|default:"Independent" }}
+            &middot; {{ article.creaeted_at|date:"j F Y" }}
+        </span>
+        <div class="row-actions">
+          <a href="{% url 'edit_article' article.pk %}">Edit</a>
+          <form method="post" action="{% url 'delete_article' article.pk %}" onsubmit="return confirm('Delete this article?')">
+            {% csrf_token %}
+            <button type="submit" class="button button-danger button-small">Delete</button>
+          </form>
+        </div>
+      </li>
+    {% empty %}
+      <li class="item-empty">You don't have any articles yet.</li>
+    {% endfor %}
+  </ul>
+
+  <a href="{% url 'create_article' %}" class="button button-primary">Create an article</a>
+{% endblock %}

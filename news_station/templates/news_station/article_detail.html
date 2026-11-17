@@ -23,6 +23,22 @@
     {{ article.content|linebreaks }}
 </article>
  
+{% if user == article.author or user.is_editor %}
+    <p>
+        {% if perms.news_station.change_article %}
+            <a href="{% url 'edit_article' article.pk %}">Edit article</a>
+        {% endif %}
+    </p>
+
+    {% if perms.news_station.delete_article %}
+        <form method="post" action="{% url 'delete_article' article.pk %}"
+              onsubmit="return confirm('Delete this article? This cannot be undone.');">
+            {% csrf_token %}
+            <button type="submit">Delete article</button>
+        </form>
+    {% endif %}
+{% endif %}
+
 <p><a href="{% url 'home' %}">&larr; Back to articles</a></p>
 {% endblock %}
  

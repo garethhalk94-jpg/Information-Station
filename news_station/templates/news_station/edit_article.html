@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Article | Information Station{% endblock %}
+
+{% block content %}
+<h1>Edit Article</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form }}
+    <button type="submit">Save changes</button>
+</form>
+
+{% if perms.news_station.delete_article %}
+    <form method="post" action="{% url 'delete_article' article.pk %}"
+          onsubmit="return confirm('Delete this article? This cannot be undone.');">
+        {% csrf_token %}
+        <button type="submit">Delete article</button>
+    </form>
+{% endif %}
+
+<p><a href="{% url 'article_detail' article.pk %}">Back to article</a></p>
+{% endblock %}
