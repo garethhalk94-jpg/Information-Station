@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+ 
+{% block title %}{{ article.title }} | Information Station{% endblock %}
+ 
+{% block content %}
+<article>
+    <h1>{{ article.title }}</h1>
+ 
+    <p>
+        By {{ article.author.username }}
+        {% if article.publisher %}
+            for {{ article.publisher.name }}
+        {% else %}
+            (Independent)
+        {% endif %}
+        &middot; {{ article.created_at|date:"j F Y" }}
+    </p>
+ 
+    {% if not article.approved %}
+        <p role="status">This article is waiting for editor approval.</p>
+    {% endif %}
+ 
+    {{ article.content|linebreaks }}
+</article>
+ 
+<p><a href="{% url 'home' %}">&larr; Back to articles</a></p>
+{% endblock %}
+ 

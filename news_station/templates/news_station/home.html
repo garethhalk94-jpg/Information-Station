@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Home | Information Station{% endblock %}
+
+{% block content %}
+<h1>Latest Articles</h1>
+
+{% for article in articles %}
+    <article>
+        <h2>
+            <a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a>
+        </h2>
+
+        <p>
+            By {{ article.author.username }}
+            {% if article.publisher %}
+                for {{ article.publisher.name }}
+            {% else %}
+                (Independent)
+            {% endif %}
+            &middot; {{ article.created_at|date:"j F Y" }}
+        </p>
+
+        <p>{{ article.content|truncatewords:40 }}</p>
+
+        <p><a href="{% url 'article_detail' article.pk %}">Read more</a></p>
+    </article>
+{% empty %}
+    <p>There are no articles to show yet.</p>
+{% endfor %}
+
+{% if page_obj.has_other_pages %}
+    <nav aria-label="Pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+    </nav>
+{% endif %}
+{% endblock %}
