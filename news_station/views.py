@@ -4,14 +4,16 @@ The article list and article detail pages.
 """
 
 from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 # from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render, redirect
 
-from .models import Article
+from .models import Article, Publisher
 from .forms import ArticleForm
 
 
@@ -132,3 +134,97 @@ def article_detail(request, pk):
     return render(
         request, "news_station/article_detail.html", {"article": article}
     )
+
+
+def publisher_detail(request, pk):
+    """Show a publisher and its approved articles, with a subscribe button."""
+    publisher = get_object_or_404(Publisher, pk=pk)
+    articles = publisher.articles.filter(approved=True).select_related(
+        "author"
+    )
+    is_subscribed = (
+        request.user.is_authenticated
+        and request.user.is_reader
+        and request.user.subscribed_publishers.filter(pk=pk).exists()
+    )
+    return render(
+        request,
+        "news_station/publisher_detail.html",
+        {
+            "publisher": publisher,
+            "articles": articles,
+            "is_subscribed": is_subscribed,
+        },
+    )
+
+
+def journalist_detail(request, pk):
+    """
+    Show a journalist and their approved articles, with a subscribe button.
+    """
+
+    journalist = get_object_or_404(get_user_model(), pk=pk, role="journalist")
+    articles = journalist.articles.filter(approved=True).select_related(
+        "publisher"
+    )
+    is_subscribed = (
+        request.user.is_authenticated
+        and request.user.is_reader
+        and request.user.subscribed_journalists.filter(pk=pk).exists()
+    )
+    return render(
+        request,
+        "news_station/journalist_detail.html",
+        {
+            "journalist": journalist,
+            "articles": articles,
+            "is_subscribed": is_subscribed,
+        },
+    )
+
+
+def set_subscription(request, field, target, subscribe):
+    """Add or remove a target from one of the reader's subscription fields."""
+    if not request.user.is_reader:
+        raise PermissionDenied("Only readers can subscribe.")
+    relation = getattr(request.user, field)
+    if subscribe:
+        relation.add(target)
+    else:
+        relation.remove(target)
+
+
+@login_required
+@require_POST
+def subscribe_publisher(request, pk):
+    publisher = get_object_or_404(Publisher, pk=pk)
+    set_subscription(request, "subscribed_publishers", publisher, True)
+    messages.success(request, f"You are now subscribed to {publisher.name}.")
+    return redirect("publisher_detail", pk=pk)
+
+
+@login_required
+@require_POST
+def unsubscribe_publisher(request, pk):
+    publisher = get_object_or_404(Publisher, pk=pk)
+    set_subscription(request, "subscribed_publishers", publisher, False)
+    messages.success(request, f"You have unsubscribed from {publisher.name}.")
+    return redirect("publisher_detail", pk=pk)
+
+
+@login_required
+@require_POST
+def subscribe_journalist(request, pk):
+    journalist = get_object_or_404(get_user_model(), pk=pk, role="journalist")
+    set_subscription(request, "subscribed_journalists", journalist, True)
+    messages.success(request, f"You are now following {journalist.username}.")
+    return redirect("journalist_detail", pk=pk)
+
+
+@login_required
+@require_POST
+def unsubscribe_journalist(request, pk):
+    journalist = get_object_or_404(get_user_model(), pk=pk, role="journalist")
+    set_subscription(request, "subscribed_journalists", journalist, False)
+    messages.success(request, f"You have unfollowed {journalist.username}.")
+    return redirect("journalist_detail", pk=pk)
