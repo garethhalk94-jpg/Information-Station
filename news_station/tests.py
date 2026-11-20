@@ -87,7 +87,7 @@ class EditDeleteArticleTests(TestCase):
             {"title": "Updated", "content": "Body", "publisher": ""},
         )
         self.assertRedirects(
-            response, reverse("article_detail", args="self.article.pk")
+            response, reverse("article_detail", args=[self.article.pk])
         )
         self.article.refresh_from_db()
         self.assertEqual(self.article.title, "Updated")
