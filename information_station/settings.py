@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -156,3 +157,6 @@ DEFAULT_FROM_EMAIL = "news@informationstation.local"
 
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "/"
+
+if "test" in sys.argv:
+    PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
